@@ -1,1 +1,972 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ひらがな・絵あわせパズル</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for cute icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Zen Maru Gothic for soft, friendly Japanese typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #e0f2fe 50%, #fbcfe8 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .bounce-hover:hover {
+            transform: scale(1.05);
+        }
+
+        .bounce-hover:active {
+            transform: scale(0.95);
+        }
+
+        /* Card flip 3D styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Pulse animations for feedback */
+        @keyframes correct-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15) rotate(3deg); }
+            100% { transform: scale(1); }
+        }
+        .animate-correct {
+            animation: correct-pop 0.4s ease-out;
+        }
+
+        @keyframes wrong-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-wrong {
+            animation: wrong-shake 0.4s ease-in-out;
+        }
+
+        /* Canvas visual overlay for stars/confetti */
+        #confetti-canvas {
+            pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        /* Custom scrollbar for sticker modal */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fcd34d;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 antialiased overflow-x-hidden">
+
+    <!-- Confetti layer -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Header / Navigation Bar -->
+    <header class="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-40 px-4 py-3 border-b-4 border-yellow-300">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="app.showHome()">
+                <div class="bg-amber-400 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xl shadow-md transform -rotate-6">
+                    あ
+                </div>
+                <div>
+                    <h1 class="font-black text-xl text-slate-800 tracking-wider">ひらがな絵あわせ</h1>
+                    <p class="text-xs text-amber-600 font-bold">しょうがく２ねんせい 向け</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Total Stars Counter -->
+                <div class="bg-amber-100 text-amber-800 border-2 border-amber-300 px-3 py-1 rounded-full flex items-center gap-1.5 font-bold shadow-sm">
+                    <i class="fa-solid font-black fa-star text-yellow-500 text-lg"></i>
+                    <span id="star-count" class="text-lg">0</span>
+                </div>
+
+                <!-- Sticker Book Button -->
+                <button onclick="app.openStickerBook()" class="bg-pink-400 hover:bg-pink-500 text-white px-3 py-1.5 rounded-2xl font-bold flex items-center gap-1.5 shadow-md bounce-hover transition-all text-sm">
+                    <i class="fa-solid fa-book-bookmark text-amber-200"></i>
+                    <span>シールちょう</span>
+                </button>
+
+                <!-- Audio Mute Toggle -->
+                <button id="sound-btn" onclick="app.toggleSound()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
+
+        <!-- SCREEN 1: Home / Mode Selection -->
+        <section id="screen-home" class="space-y-6 text-center py-4">
+            <div class="space-y-2">
+                <span class="bg-amber-200 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">たのしく ひらがな を おぼえよう！</span>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-800 tracking-wide">どのゲーム で あそぶ？</h2>
+            </div>
+
+            <!-- Category selector -->
+            <div class="bg-white/80 p-4 rounded-3xl shadow-lg border-2 border-amber-200 max-w-md mx-auto">
+                <label class="block text-sm font-bold text-slate-600 mb-2">ジャンル を えらんでね</label>
+                <div class="grid grid-cols-3 gap-2" id="category-selector">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Game Mode Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto pt-2">
+                
+                <!-- Mode A: Pair Match -->
+                <div onclick="app.startGame('pair')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-amber-300 hover:border-amber-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                    </div>
+                    <span class="bg-amber-400 text-white text-xs font-bold px-2 py-0.5 rounded-md mb-1">おすすめ！</span>
+                    <h3 class="text-xl font-extrabold text-slate-800 mb-1">ペアで タッチ</h3>
+                    <p class="text-xs text-slate-500 font-bold">ことば と え を えらんで<br>ペア を つくろう！</p>
+                </div>
+
+                <!-- Mode B: Speed Quiz -->
+                <div onclick="app.startGame('quiz')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-cyan-300 hover:border-cyan-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center text-cyan-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-circle-question"></i>
+                    </div>
+                    <span class="bg-cyan-400 text-white text-xs font-bold px-2 py-0.5 rounded-md mb-1">4たく クイズ</span>
+                    <h3 class="text-xl font-extrabold text-slate-800 mb-1">スピード えらび</h3>
+                    <p class="text-xs text-slate-500 font-bold">ことば に あう え を<br>4つ から えらぼう！</p>
+                </div>
+
+                <!-- Mode C: Concentration Memory -->
+                <div onclick="app.startGame('memory')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-purple-300 hover:border-purple-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-clone"></i>
+                    </div>
+                    <span class="bg-purple-400 text-white text-xs font-bold px-2 py-0.5 rounded-md mb-1">きおく ゲーム</span>
+                    <h3 class="text-xl font-extrabold text-slate-800 mb-1">めくって カード</h3>
+                    <p class="text-xs text-slate-500 font-bold">うらえし カード を めくって<br>おなじ ペア を さがそう！</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: Gameplay Area (Shared/Dynamic) -->
+        <section id="screen-game" class="hidden flex-col items-center space-y-4">
+            <!-- Top HUD Bar -->
+            <div class="w-full bg-white/80 backdrop-blur rounded-2xl p-3 shadow-md border border-slate-200 flex items-center justify-between">
+                <button onclick="app.showHome()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 transition">
+                    <i class="fa-solid fa-arrow-left"></i> もどる
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <span id="game-category-badge" class="bg-amber-100 text-amber-800 font-bold text-xs px-3 py-1 rounded-full">
+                        どうぶつ
+                    </span>
+                    <div class="text-slate-600 font-bold text-sm">
+                        せいかい: <span id="game-score" class="text-amber-600 font-black text-lg">0</span> / <span id="game-total">5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Play Area Container -->
+            <div id="game-board" class="w-full">
+                <!-- Dynamic content inserted by JS based on game mode -->
+            </div>
+        </section>
+
+        <!-- SCREEN 3: Result Modal Overlay -->
+        <div id="modal-result" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl border-4 border-yellow-300 space-y-5 animate-correct">
+                <div class="text-5xl text-yellow-400">
+                    <i class="fa-solid fa-crown animate-bounce"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-800">たいへん よくできました！</h3>
+                    <p class="text-slate-500 font-bold text-sm mt-1">ぜんぶ せいかい できたよ！</p>
+                </div>
+
+                <!-- Reward display -->
+                <div class="bg-amber-50 rounded-2xl p-4 border-2 border-amber-200 space-y-2">
+                    <p class="text-xs font-bold text-amber-700">ゲットした スター</p>
+                    <div class="flex justify-center gap-2 text-3xl text-yellow-400">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <p id="new-sticker-msg" class="text-xs font-black text-pink-600 mt-2 hidden">
+                        🎉 新しいシール を ゲットしたよ！
+                    </p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="app.showHome()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-2xl font-bold transition">
+                        メニュー
+                    </button>
+                    <button onclick="app.replayGame()" class="flex-1 bg-amber-400 hover:bg-amber-500 text-white py-3 rounded-2xl font-black shadow-md transition bounce-hover">
+                        もういちど
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: Sticker Book Modal -->
+        <div id="modal-stickers" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-pink-300 space-y-4 max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark text-pink-500 text-xl"></i>
+                        <h3 class="text-xl font-black text-slate-800">ごほうび シールちょう</h3>
+                    </div>
+                    <button onclick="app.closeStickerBook()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs font-bold text-slate-500 text-center">ゲーム を クリア して シール を あつめよう！</p>
+
+                <!-- Grid of unlocked stickers -->
+                <div id="sticker-grid" class="grid grid-cols-4 gap-3 p-2 overflow-y-auto flex-1">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <button onclick="app.closeStickerBook()" class="w-full bg-pink-400 hover:bg-pink-500 text-white py-2.5 rounded-2xl font-bold shadow transition">
+                    とじる
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Comprehensive Dataset tailored for Japanese 2nd Graders
+        const WORD_DATA = {
+            animals: {
+                name: 'どうぶつ',
+                icon: 'fa-paw',
+                color: 'bg-amber-100 text-amber-700',
+                items: [
+                    { word: 'いぬ', emoji: '🐶', hint: 'ワンワン なきます' },
+                    { word: 'ねこ', emoji: '🐱', hint: 'ニャーニャー なきます' },
+                    { word: 'うさぎ', emoji: '🐰', hint: 'みみが ながい どうぶつ' },
+                    { word: 'くま', emoji: '🐻', hint: 'さけ が すきな どうぶつ' },
+                    { word: 'らいおん', emoji: '🦁', hint: '百じゅうの おう' },
+                    { word: 'ぞう', emoji: '🐘', hint: 'はなが ながい どうぶつ' },
+                    { word: 'ぺんぎん', emoji: '🐧', hint: 'こおりの うえを あ歩きます' },
+                    { word: 'さる', emoji: '🐒', hint: 'バナナ が すき' },
+                    { word: 'きりん', emoji: '🦒', hint: 'くびが とても ながい' },
+                    { word: 'ぱんだ', emoji: '🐼', hint: 'しろくろ もようの どうぶつ' },
+                    { word: 'ひよこ', emoji: '🐤', hint: 'ピヨピヨ なきます' },
+                    { word: 'かえる', emoji: '🐸', hint: 'ケロケロ なきます' }
+                ]
+            },
+            food: {
+                name: 'たべもの',
+                icon: 'fa-apple-whole',
+                color: 'bg-red-100 text-red-700',
+                items: [
+                    { word: 'りんご', emoji: '🍎', hint: 'あかい くだもの' },
+                    { word: 'いちご', emoji: '🍓', hint: 'ケーキに のっている くだもの' },
+                    { word: 'ばなな', emoji: '🍌', hint: 'きいいろい くだもの' },
+                    { word: 'すいか', emoji: '🍉', hint: 'なつに たべる 大きな くだもの' },
+                    { word: 'ぱん', emoji: '🍞', hint: 'あさごはんに たべるよ' },
+                    { word: 'おにぎり', emoji: '🍙', hint: 'のりが まいてあるよ' },
+                    { word: 'らーめん', emoji: '🍜', hint: 'あつい めんの たべもの' },
+                    { word: 'けーき', emoji: '🎂', hint: 'たんじょうび に たべるよ' },
+                    { word: 'たまご', emoji: '🥚', hint: 'しろくて まるいよ' },
+                    { word: 'ぶどう', emoji: '🍇', hint: 'むらさきいろの くだもの' }
+                ]
+            },
+            vehicles: {
+                name: 'のりもの',
+                icon: 'fa-bus',
+                color: 'bg-blue-100 text-blue-700',
+                items: [
+                    { word: 'でんしゃ', emoji: '🚃', hint: 'せんろの うえを はしるよ' },
+                    { word: 'ひこうき', emoji: '✈️', hint: 'そらを とぶ のりもの' },
+                    { word: 'じどうしゃ', emoji: '🚗', hint: 'ぶーぶー はしるよ' },
+                    { word: 'しんかんせん', emoji: '🚅', hint: 'とても はやい でんしゃ' },
+                    { word: 'ふね', emoji: '🚢', hint: 'うみの うえを すすむよ' },
+                    { word: 'きゅうきゅうしゃ', emoji: '🚑', hint: 'びょういん へ いそぐよ' },
+                    { word: 'しょうぼうしゃ', emoji: '🚒', hint: 'かじを けす くるま' },
+                    { word: 'じてんしゃ', emoji: '🚲', hint: 'ペダルを こいで すすむよ' }
+                ]
+            },
+            daily: {
+                name: 'せいかつ',
+                icon: 'fa-pen-ruler',
+                color: 'bg-green-100 text-green-700',
+                items: [
+                    { word: 'えんぴつ', emoji: '✏️', hint: 'じを かく ときに つかうよ' },
+                    { word: 'ほん', emoji: '📖', hint: 'よむと たのしいよ' },
+                    { word: 'かばん', emoji: '🎒', hint: 'もの を いれて はこぶよ' },
+                    { word: 'とけい', emoji: '⏰', hint: 'じかん を おしえて くれるよ' },
+                    { word: 'はさみ', emoji: '✂️', hint: 'かみを きるときに つかうよ' },
+                    { word: 'かさ', emoji: '☂️', hint: 'あめの ひに つかうよ' },
+                    { word: 'くつ', emoji: '👟', hint: 'あしに はいて あるくよ' },
+                    { word: 'めがね', emoji: '👓', hint: 'かおに つけるよ' }
+                ]
+            }
+        };
+
+        // All unlockable stickers for Sticker Book
+        const STICKERS = [
+            { id: 1, name: 'はなまる', emoji: '💮', reqStars: 0 },
+            { id: 2, name: 'きんめだる', emoji: '🥇', reqStars: 3 },
+            { id: 3, name: 'にじ', emoji: '🌈', reqStars: 6 },
+            { id: 4, name: 'ひこうき', emoji: '🚀', reqStars: 9 },
+            { id: 5, name: 'おしろ', emoji: '🏰', reqStars: 12 },
+            { id: 6, name: 'きんのほし', emoji: '🌟', reqStars: 15 },
+            { id: 7, name: 'くすだま', emoji: '🎊', reqStars: 20 },
+            { id: 8, name: 'おうかん', emoji: '👑', reqStars: 25 }
+        ];
+
+        // Audio Synthesizer Class (No external audio file dependencies)
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            }
+
+            playTone(freq, type, duration, delay = 0) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                setTimeout(() => {
+                    try {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = type;
+                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                        
+                        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + duration);
+                    } catch (e) {
+                        console.warn('Audio play blocked or unsupported');
+                    }
+                }, delay);
+            }
+
+            playCorrect() {
+                // Happy high chime (Do-Mi-Sol-Do)
+                this.playTone(523.25, 'sine', 0.15, 0);   // C5
+                this.playTone(659.25, 'sine', 0.15, 100); // E5
+                this.playTone(783.99, 'sine', 0.15, 200); // G5
+                this.playTone(1046.50, 'sine', 0.3, 300); // C6
+            }
+
+            playWrong() {
+                // Low buzz tone
+                this.playTone(220, 'sawtooth', 0.2, 0);
+                this.playTone(180, 'sawtooth', 0.3, 150);
+            }
+
+            playFlip() {
+                this.playTone(400, 'triangle', 0.08, 0);
+            }
+
+            playFanfare() {
+                // Victory Fanfare
+                const notes = [523.25, 523.25, 523.25, 659.25, 783.99, 1046.50];
+                const delays = [0, 150, 300, 450, 600, 800];
+                const durations = [0.12, 0.12, 0.12, 0.15, 0.2, 0.6];
+                notes.forEach((n, i) => this.playTone(n, 'triangle', durations[i], delays[i]));
+            }
+
+            speak(text) {
+                if (!this.enabled || !('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel(); // Stop active speech
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'ja-JP';
+                utter.rate = 0.9; // Slightly slower for primary school kids
+                utter.pitch = 1.1; // Slightly higher/friendly tone
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
+        class HiraganaApp {
+            constructor() {
+                this.sound = new SoundSystem();
+                this.selectedCategory = 'animals';
+                this.currentMode = null;
+                this.stars = parseInt(localStorage.getItem('hiragana_stars') || '0');
+                
+                // Game session state
+                this.score = 0;
+                this.totalQuestions = 5;
+                this.currentPool = [];
+                
+                // Selection state for Pair Match mode
+                this.selectedWordCard = null;
+                this.selectedPictureCard = null;
+
+                // Memory game state
+                this.memoryCards = [];
+                this.flippedCards = [];
+                this.isProcessing = false;
+
+                this.initUI();
+            }
+
+            initUI() {
+                this.updateStarDisplay();
+                this.renderCategories();
+            }
+
+            toggleSound() {
+                this.sound.enabled = !this.sound.enabled;
+                const btn = document.getElementById('sound-btn');
+                if (this.sound.enabled) {
+                    btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                    btn.className = 'bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all';
+                    this.sound.playTone(440, 'sine', 0.1);
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                    btn.className = 'bg-red-100 hover:bg-red-200 text-red-600 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all';
+                }
+            }
+
+            renderCategories() {
+                const container = document.getElementById('category-selector');
+                container.innerHTML = '';
+
+                Object.keys(WORD_DATA).forEach(key => {
+                    const cat = WORD_DATA[key];
+                    const isSelected = key === this.selectedCategory;
+                    const btn = document.createElement('button');
+                    btn.onclick = () => {
+                        this.selectedCategory = key;
+                        this.sound.playFlip();
+                        this.renderCategories();
+                    };
+                    btn.className = `p-2 rounded-2xl border-2 flex flex-col items-center justify-center gap-1 transition-all ${
+                        isSelected 
+                            ? 'border-amber-400 bg-amber-50 text-amber-900 shadow-md scale-105 font-black' 
+                            : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold'
+                    }`;
+                    btn.innerHTML = `
+                        <i class="fa-solid ${cat.icon} text-lg"></i>
+                        <span class="text-xs">${cat.name}</span>
+                    `;
+                    container.appendChild(btn);
+                });
+            }
+
+            updateStarDisplay() {
+                document.getElementById('star-count').innerText = this.stars;
+                localStorage.setItem('hiragana_stars', this.stars.toString());
+            }
+
+            addStars(count) {
+                this.stars += count;
+                this.updateStarDisplay();
+            }
+
+            showHome() {
+                document.getElementById('screen-home').classList.remove('hidden');
+                document.getElementById('screen-game').classList.add('hidden');
+                document.getElementById('screen-game').classList.remove('flex');
+                document.getElementById('modal-result').classList.add('hidden');
+            }
+
+            startGame(mode) {
+                this.currentMode = mode;
+                this.score = 0;
+                this.selectedWordCard = null;
+                this.selectedPictureCard = null;
+
+                const categoryData = WORD_DATA[this.selectedCategory];
+                document.getElementById('game-category-badge').innerText = categoryData.name;
+                document.getElementById('game-score').innerText = '0';
+
+                // Pick random subset of words for this round
+                const shuffled = [...categoryData.items].sort(() => 0.5 - Math.random());
+                
+                if (mode === 'pair') {
+                    this.totalQuestions = Math.min(5, shuffled.length);
+                    this.currentPool = shuffled.slice(0, this.totalQuestions);
+                    document.getElementById('game-total').innerText = this.totalQuestions;
+                    this.setupPairMatchGame();
+                } else if (mode === 'quiz') {
+                    this.totalQuestions = 5;
+                    this.currentPool = shuffled;
+                    document.getElementById('game-total').innerText = this.totalQuestions;
+                    this.currentQuizIndex = 0;
+                    this.setupQuizStep();
+                } else if (mode === 'memory') {
+                    this.totalQuestions = 4; // 4 pairs (8 cards total) for ideal length
+                    this.currentPool = shuffled.slice(0, this.totalQuestions);
+                    document.getElementById('game-total').innerText = this.totalQuestions;
+                    this.setupMemoryGame();
+                }
+
+                document.getElementById('screen-home').classList.add('hidden');
+                document.getElementById('screen-game').classList.remove('hidden');
+                document.getElementById('screen-game').classList.add('flex');
+            }
+
+            replayGame() {
+                document.getElementById('modal-result').classList.add('hidden');
+                this.startGame(this.currentMode);
+            }
+
+            setupPairMatchGame() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+
+                // Create 2 columns: Left = Hiragana Words, Right = Picture Cards
+                const words = [...this.currentPool].sort(() => 0.5 - Math.random());
+                const pictures = [...this.currentPool].sort(() => 0.5 - Math.random());
+
+                const container = document.createElement('div');
+                container.className = 'grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto';
+
+                // Left Column - Hiragana
+                const leftCol = document.createElement('div');
+                leftCol.className = 'space-y-3';
+                const leftTitle = document.createElement('p');
+                leftTitle.className = 'text-center font-black text-slate-500 text-sm mb-2';
+                leftTitle.innerText = '① ことば を タッチ';
+                leftCol.appendChild(leftTitle);
+
+                words.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.dataset.word = item.word;
+                    btn.className = 'pair-word-card w-full bg-white border-4 border-amber-200 hover:border-amber-400 p-4 rounded-2xl shadow-md flex items-center justify-between text-2xl md:text-3xl font-black text-slate-800 transition-all bounce-hover';
+                    btn.innerHTML = `
+                        <span>${item.word}</span>
+                        <i class="fa-solid fa-volume-high text-amber-400 text-lg hover:scale-125 transition" onclick="event.stopPropagation(); app.sound.speak('${item.word}')"></i>
+                    `;
+                    btn.onclick = () => this.handlePairWordSelect(btn, item);
+                    leftCol.appendChild(btn);
+                });
+
+                // Right Column - Pictures
+                const rightCol = document.createElement('div');
+                rightCol.className = 'space-y-3';
+                const rightTitle = document.createElement('p');
+                rightTitle.className = 'text-center font-black text-slate-500 text-sm mb-2';
+                rightTitle.innerText = '② え を タッチ';
+                rightCol.appendChild(rightTitle);
+
+                pictures.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.dataset.word = item.word;
+                    btn.className = 'pair-pic-card w-full bg-white border-4 border-cyan-200 hover:border-cyan-400 p-4 rounded-2xl shadow-md flex items-center justify-center text-4xl md:text-5xl transition-all bounce-hover h-[68px]';
+                    btn.innerText = item.emoji;
+                    btn.onclick = () => this.handlePairPicSelect(btn, item);
+                    rightCol.appendChild(btn);
+                });
+
+                container.appendChild(leftCol);
+                container.appendChild(rightCol);
+                board.appendChild(container);
+            }
+
+            handlePairWordSelect(btn, item) {
+                if (btn.classList.contains('matched')) return;
+                
+                // Read word out loud
+                this.sound.speak(item.word);
+                this.sound.playFlip();
+
+                // Highlight word selection
+                document.querySelectorAll('.pair-word-card').forEach(b => {
+                    if (!b.classList.contains('matched')) {
+                        b.classList.remove('border-amber-500', 'bg-amber-100', 'scale-105');
+                        b.classList.add('border-amber-200', 'bg-white');
+                    }
+                });
+
+                btn.classList.remove('border-amber-200', 'bg-white');
+                btn.classList.add('border-amber-500', 'bg-amber-100', 'scale-105');
+                this.selectedWordCard = { btn, item };
+
+                this.checkPairMatch();
+            }
+
+            handlePairPicSelect(btn, item) {
+                if (btn.classList.contains('matched')) return;
+
+                this.sound.playFlip();
+
+                // Highlight picture selection
+                document.querySelectorAll('.pair-pic-card').forEach(b => {
+                    if (!b.classList.contains('matched')) {
+                        b.classList.remove('border-cyan-500', 'bg-cyan-100', 'scale-105');
+                        b.classList.add('border-cyan-200', 'bg-white');
+                    }
+                });
+
+                btn.classList.remove('border-cyan-200', 'bg-white');
+                btn.classList.add('border-cyan-500', 'bg-cyan-100', 'scale-105');
+                this.selectedPictureCard = { btn, item };
+
+                this.checkPairMatch();
+            }
+
+            checkPairMatch() {
+                if (!this.selectedWordCard || !this.selectedPictureCard) return;
+
+                const isMatch = this.selectedWordCard.item.word === this.selectedPictureCard.item.word;
+
+                if (isMatch) {
+                    this.sound.playCorrect();
+                    
+                    // Style both as matched
+                    [this.selectedWordCard.btn, this.selectedPictureCard.btn].forEach(btn => {
+                        btn.classList.add('matched', 'bg-green-100', 'border-green-400', 'opacity-60', 'animate-correct');
+                        btn.classList.remove('border-amber-500', 'border-cyan-500', 'bg-amber-100', 'bg-cyan-100', 'scale-105');
+                        btn.disabled = true;
+                    });
+
+                    this.score++;
+                    document.getElementById('game-score').innerText = this.score;
+
+                    this.selectedWordCard = null;
+                    this.selectedPictureCard = null;
+
+                    if (this.score >= this.totalQuestions) {
+                        setTimeout(() => this.finishGame(), 600);
+                    }
+                } else {
+                    this.sound.playWrong();
+                    
+                    const wBtn = this.selectedWordCard.btn;
+                    const pBtn = this.selectedPictureCard.btn;
+
+                    wBtn.classList.add('animate-wrong', 'border-red-400');
+                    pBtn.classList.add('animate-wrong', 'border-red-400');
+
+                    setTimeout(() => {
+                        wBtn.classList.remove('animate-wrong', 'border-red-400', 'border-amber-500', 'bg-amber-100', 'scale-105');
+                        pBtn.classList.remove('animate-wrong', 'border-red-400', 'border-cyan-500', 'bg-cyan-100', 'scale-105');
+                        wBtn.classList.add('border-amber-200', 'bg-white');
+                        pBtn.classList.add('border-cyan-200', 'bg-white');
+                    }, 500);
+
+                    this.selectedWordCard = null;
+                    this.selectedPictureCard = null;
+                }
+            }
+
+            setupQuizStep() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+
+                const currentTarget = this.currentPool[this.currentQuizIndex];
+                this.sound.speak(currentTarget.word);
+
+                // Prepare 4 choices (1 correct + 3 random distractors)
+                const categoryData = WORD_DATA[this.selectedCategory];
+                let choices = [currentTarget];
+                const otherItems = categoryData.items.filter(i => i.word !== currentTarget.word);
+                const shuffledOthers = [...otherItems].sort(() => 0.5 - Math.random());
+                choices = choices.concat(shuffledOthers.slice(0, 3)).sort(() => 0.5 - Math.random());
+
+                const container = document.createElement('div');
+                container.className = 'max-w-md mx-auto space-y-6 text-center';
+
+                // Display target word in large Hiragana font with audio button
+                const wordCard = document.createElement('div');
+                wordCard.className = 'bg-white border-4 border-amber-300 rounded-3xl p-6 shadow-xl flex flex-col items-center justify-center gap-3';
+                wordCard.innerHTML = `
+                    <span class="text-slate-400 text-xs font-bold">この ことば の え は どれ？</span>
+                    <div class="text-4xl md:text-5xl font-black text-slate-800 tracking-wider flex items-center gap-3">
+                        <span>${currentTarget.word}</span>
+                        <button onclick="app.sound.speak('${currentTarget.word}')" class="bg-amber-100 hover:bg-amber-200 text-amber-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow transition">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                `;
+
+                // 4 Picture Choice Buttons
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-4';
+
+                choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'bg-white hover:bg-amber-50 border-4 border-slate-200 hover:border-amber-400 rounded-3xl p-6 text-5xl md:text-6xl shadow-lg transition-all bounce-hover flex items-center justify-center min-h-[120px]';
+                    btn.innerText = choice.emoji;
+                    btn.onclick = () => this.handleQuizChoice(btn, choice, currentTarget);
+                    grid.appendChild(btn);
+                });
+
+                container.appendChild(wordCard);
+                container.appendChild(grid);
+                board.appendChild(container);
+            }
+
+            handleQuizChoice(btn, choice, target) {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+
+                if (choice.word === target.word) {
+                    this.sound.playCorrect();
+                    btn.classList.add('bg-green-100', 'border-green-400', 'animate-correct');
+                    this.score++;
+                    document.getElementById('game-score').innerText = this.score;
+
+                    setTimeout(() => {
+                        this.currentQuizIndex++;
+                        this.isProcessing = false;
+                        if (this.currentQuizIndex < this.totalQuestions) {
+                            this.setupQuizStep();
+                        } else {
+                            this.finishGame();
+                        }
+                    }, 800);
+                } else {
+                    this.sound.playWrong();
+                    btn.classList.add('bg-red-100', 'border-red-400', 'animate-wrong');
+                    
+                    setTimeout(() => {
+                        btn.classList.remove('bg-red-100', 'border-red-400', 'animate-wrong');
+                        this.isProcessing = false;
+                    }, 600);
+                }
+            }
+
+            setupMemoryGame() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+
+                // Create cards array: 4 hiragana cards + 4 picture cards
+                let cards = [];
+                this.currentPool.forEach(item => {
+                    cards.push({ id: item.word, type: 'text', content: item.word, matched: false });
+                    cards.push({ id: item.word, type: 'pic', content: item.emoji, matched: false });
+                });
+                cards.sort(() => 0.5 - Math.random());
+                this.memoryCards = cards;
+                this.flippedCards = [];
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-4 gap-3 md:gap-4 max-w-lg mx-auto pt-2';
+
+                cards.forEach((card, idx) => {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'perspective-1000 h-28 md:h-32 cursor-pointer bounce-hover';
+                    cardEl.innerHTML = `
+                        <div id="mem-card-${idx}" class="w-full h-full transform-style-3d transition-transform duration-500 relative rounded-2xl shadow-md border-4 border-amber-300 bg-amber-400 flex items-center justify-center">
+                            <!-- Card Back -->
+                            <div class="absolute inset-0 backface-hidden flex items-center justify-center text-white text-3xl font-black">
+                                かーど
+                            </div>
+                            <!-- Card Front -->
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl flex items-center justify-center p-2 text-center text-2xl md:text-3xl font-black text-slate-800 border-2 border-amber-200">
+                                ${card.type === 'text' ? card.content : `<span class="text-4xl">${card.content}</span>`}
+                            </div>
+                        </div>
+                    `;
+                    cardEl.onclick = () => this.handleMemoryCardClick(idx);
+                    grid.appendChild(cardEl);
+                });
+
+                board.appendChild(grid);
+            }
+
+            handleMemoryCardClick(idx) {
+                if (this.isProcessing) return;
+                const card = this.memoryCards[idx];
+                const cardInner = document.getElementById(`mem-card-${idx}`);
+
+                if (card.matched || this.flippedCards.includes(idx)) return;
+
+                this.sound.playFlip();
+                cardInner.classList.add('rotate-y-180');
+                
+                if (card.type === 'text') {
+                    this.sound.speak(card.content);
+                }
+
+                this.flippedCards.push(idx);
+
+                if (this.flippedCards.length === 2) {
+                    this.isProcessing = true;
+                    const idx1 = this.flippedCards[0];
+                    const idx2 = this.flippedCards[1];
+                    const card1 = this.memoryCards[idx1];
+                    const card2 = this.memoryCards[idx2];
+
+                    if (card1.id === card2.id) {
+                        // Match!
+                        this.sound.playCorrect();
+                        card1.matched = true;
+                        card2.matched = true;
+                        this.score++;
+                        document.getElementById('game-score').innerText = this.score;
+
+                        this.flippedCards = [];
+                        this.isProcessing = false;
+
+                        if (this.score >= this.totalQuestions) {
+                            setTimeout(() => this.finishGame(), 800);
+                        }
+                    } else {
+                        // Not a match
+                        this.sound.playWrong();
+                        setTimeout(() => {
+                            document.getElementById(`mem-card-${idx1}`).classList.remove('rotate-y-180');
+                            document.getElementById(`mem-card-${idx2}`).classList.remove('rotate-y-180');
+                            this.flippedCards = [];
+                            this.isProcessing = false;
+                        }, 1000);
+                    }
+                }
+            }
+
+            finishGame() {
+                this.sound.playFanfare();
+                this.launchConfetti();
+
+                // Award 3 stars per completed game
+                const oldStars = this.stars;
+                this.addStars(3);
+
+                // Check if new sticker unlocked
+                const newlyUnlocked = STICKERS.some(s => oldStars < s.reqStars && this.stars >= s.reqStars);
+                const msg = document.getElementById('new-sticker-msg');
+                if (newlyUnlocked) {
+                    msg.classList.remove('hidden');
+                } else {
+                    msg.classList.add('hidden');
+                }
+
+                document.getElementById('modal-result').classList.remove('hidden');
+            }
+
+            openStickerBook() {
+                this.sound.playFlip();
+                const grid = document.getElementById('sticker-grid');
+                grid.innerHTML = '';
+
+                STICKERS.forEach(s => {
+                    const isUnlocked = this.stars >= s.reqStars;
+                    const item = document.createElement('div');
+                    item.className = `p-3 rounded-2xl border-2 flex flex-col items-center justify-center text-center transition-all ${
+                        isUnlocked 
+                            ? 'bg-amber-50 border-amber-300 text-slate-800 shadow-sm' 
+                            : 'bg-slate-100 border-slate-200 text-slate-400 opacity-60'
+                    }`;
+                    item.innerHTML = `
+                        <div class="text-4xl mb-1">${isUnlocked ? s.emoji : '🔒'}</div>
+                        <span class="text-xs font-bold">${s.name}</span>
+                        <span class="text-[10px] text-amber-600 font-extrabold mt-0.5">${isUnlocked ? 'ゲット！' : `★${s.reqStars}`}</span>
+                    `;
+                    grid.appendChild(item);
+                });
+
+                document.getElementById('modal-stickers').classList.remove('hidden');
+            }
+
+            closeStickerBook() {
+                this.sound.playFlip();
+                document.getElementById('modal-stickers').classList.add('hidden');
+            }
+
+            // Simple confetti particle animation
+            launchConfetti() {
+                const canvas = document.getElementById('confetti-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const particles = [];
+                const colors = ['#f59e0b', '#ec4899', '#3b82f6', '#10b981', '#8b5cf6'];
+
+                for (let i = 0; i < 80; i++) {
+                    particles.push({
+                        x: canvas.width / 2,
+                        y: canvas.height / 2,
+                        vx: (Math.random() - 0.5) * 12,
+                        vy: (Math.random() - 0.7) * 14,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: Math.random() * 8 + 4,
+                        gravity: 0.25,
+                        rotation: Math.random() * 360,
+                        vRot: (Math.random() - 0.5) * 10
+                    });
+                }
+
+                let duration = 0;
+                function render() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += p.gravity;
+                        p.rotation += p.vRot;
+
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate((p.rotation * Math.PI) / 180);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                        ctx.restore();
+                    });
+
+                    duration++;
+                    if (duration < 90) {
+                        requestAnimationFrame(render);
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                }
+                render();
+            }
+        }
+
+        // Initialize application instance on window load
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new HiraganaApp();
+        });
+    </script>
+</body>
+</html>
