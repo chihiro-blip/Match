@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for cute icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Zen Maru Gothic for soft, friendly Japanese typography -->
+    <!-- Google Fonts: Zen Maru Gothic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
@@ -23,61 +23,38 @@
             touch-action: manipulation;
         }
 
-        .bounce-hover:hover {
-            transform: scale(1.05);
-        }
+        .bounce-hover:hover { transform: scale(1.05); }
+        .bounce-hover:active { transform: scale(0.95); }
 
-        .bounce-hover:active {
-            transform: scale(0.95);
-        }
-
-        /* Pulse animations for feedback */
         @keyframes correct-pop {
             0% { transform: scale(1); }
             50% { transform: scale(1.15) rotate(3deg); }
             100% { transform: scale(1); }
         }
-        .animate-correct {
-            animation: correct-pop 0.4s ease-out;
-        }
+        .animate-correct { animation: correct-pop 0.4s ease-out; }
 
         @keyframes wrong-shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-8px); }
             40%, 80% { transform: translateX(8px); }
         }
-        .animate-wrong {
-            animation: wrong-shake 0.4s ease-in-out;
-        }
+        .animate-wrong { animation: wrong-shake 0.4s ease-in-out; }
 
-        /* Canvas visual overlay for stars/confetti */
         #confetti-canvas {
             pointer-events: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
             z-index: 100;
         }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #fcd34d;
-            border-radius: 10px;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #fcd34d; border-radius: 10px; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 antialiased overflow-x-hidden">
 
-    <!-- Confetti layer -->
     <canvas id="confetti-canvas"></canvas>
 
     <!-- Header / Navigation Bar -->
@@ -131,16 +108,15 @@
             </div>
 
             <!-- Category selector -->
-            <div class="bg-white/80 p-4 rounded-3xl shadow-lg border-2 border-amber-200 max-w-md mx-auto">
+            <div class="bg-white/80 p-4 rounded-3xl shadow-lg border-2 border-amber-200 max-w-lg mx-auto">
                 <label class="block text-sm font-bold text-slate-600 mb-2">ジャンル を えらんでね</label>
-                <div class="grid grid-cols-4 gap-2" id="category-selector">
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2" id="category-selector">
                     <!-- Populated by JavaScript -->
                 </div>
             </div>
 
             <!-- Game Mode Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto pt-2">
-                <!-- Mode A: Pair Match -->
                 <div onclick="app.startGame('pair')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-amber-300 hover:border-amber-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
                     <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-hand-pointer"></i>
@@ -150,7 +126,6 @@
                     <p class="text-xs text-slate-500 font-bold">ことば と え を えらんで<br>ペア を つくろう！</p>
                 </div>
 
-                <!-- Mode B: Speed Quiz -->
                 <div onclick="app.startGame('quiz')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-cyan-300 hover:border-cyan-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
                     <div class="w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center text-cyan-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-circle-question"></i>
@@ -160,7 +135,6 @@
                     <p class="text-xs text-slate-500 font-bold">ことば に あう え を<br>4つ から えらぼう！</p>
                 </div>
 
-                <!-- Mode C: Concentration Memory -->
                 <div onclick="app.startGame('memory')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-purple-300 hover:border-purple-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
                     <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-clone"></i>
@@ -181,7 +155,7 @@
 
                 <div class="flex items-center gap-3">
                     <span id="game-category-badge" class="bg-amber-100 text-amber-800 font-bold text-xs px-3 py-1 rounded-full">
-                        どうぶつ
+                        がっこう
                     </span>
                     <div class="text-slate-600 font-bold text-sm">
                         せいかい: <span id="game-score" class="text-amber-600 font-black text-lg">0</span> / <span id="game-total">5</span>
@@ -229,10 +203,21 @@
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-book-bookmark text-pink-500 text-xl"></i>
-                        <h3 class="text-xl font-black text-slate-800">ごほうび シールちょう</h3>
+                        <h3 class="text-xl font-black text-slate-800">シールちょう</h3>
                     </div>
                     <button onclick="app.closeStickerBook()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
                         <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Get Sticker Button (Costs 10 Stars) -->
+                <div class="bg-pink-50 p-3 rounded-2xl border border-pink-200 flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-xs text-pink-800">スター 10こ で シールをゲット！</p>
+                        <p class="text-[10px] text-pink-600 font-bold">いまのスター: <span id="modal-star-count" class="text-amber-600 font-black">0</span> こ</p>
+                    </div>
+                    <button id="get-sticker-btn" onclick="app.drawSticker()" class="bg-amber-400 hover:bg-amber-500 disabled:bg-slate-300 text-white font-black text-xs px-3 py-2 rounded-xl shadow transition bounce-hover">
+                        シールをひく (★10)
                     </button>
                 </div>
 
@@ -244,7 +229,7 @@
             </div>
         </div>
 
-        <!-- NEW SCREEN 5: Custom Image Manager Modal -->
+        <!-- SCREEN 5: Custom Image Manager Modal -->
         <div id="modal-image-manager" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border-4 border-indigo-300 space-y-4 max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -257,7 +242,6 @@
                     </button>
                 </div>
 
-                <!-- New Item Form -->
                 <form id="custom-item-form" onsubmit="app.addCustomItem(event)" class="bg-indigo-50 p-4 rounded-2xl space-y-3 border border-indigo-100 text-xs md:text-sm">
                     <p class="font-bold text-indigo-900 border-b border-indigo-200 pb-1">あたらしい え を ついか する</p>
                     
@@ -265,6 +249,7 @@
                         <div>
                             <label class="block font-bold text-slate-600 mb-1">ジャンル</label>
                             <select id="input-category" class="w-full p-2 rounded-xl border border-slate-300 font-bold bg-white">
+                                <option value="school">がっこう</option>
                                 <option value="animals">どうぶつ</option>
                                 <option value="food">たべもの</option>
                                 <option value="vehicles">のりもの</option>
@@ -273,7 +258,7 @@
                         </div>
                         <div>
                             <label class="block font-bold text-slate-600 mb-1">ひらがな（なまえ）</label>
-                            <input type="text" id="input-word" placeholder="例: いぬ" required class="w-full p-2 rounded-xl border border-slate-300 font-bold">
+                            <input type="text" id="input-word" placeholder="例: つくえ" required class="w-full p-2 rounded-xl border border-slate-300 font-bold">
                         </div>
                     </div>
 
@@ -291,12 +276,9 @@
                     </button>
                 </form>
 
-                <!-- List of Custom Items -->
                 <div class="flex-1 overflow-y-auto space-y-2 pr-1">
                     <p class="font-bold text-xs text-slate-500">ついかした カード いちらん</p>
-                    <div id="custom-items-list" class="space-y-2">
-                        <!-- Populated dynamically -->
-                    </div>
+                    <div id="custom-items-list" class="space-y-2"></div>
                 </div>
 
                 <button onclick="app.closeImageManager()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-2xl font-bold transition">
@@ -308,8 +290,20 @@
     </main>
 
     <script>
-        // Initial Dataset
+        // Initial Dataset (Added School Category)
         const BASE_WORD_DATA = {
+            school: {
+                name: 'がっこう',
+                icon: 'fa-school',
+                items: [
+                    { word: 'つくえ', emoji: '🪑' },
+                    { word: 'いす', emoji: '🪑' },
+                    { word: 'こくばん', emoji: '⬛' },
+                    { word: 'ふでばこ', emoji: '👝' },
+                    { word: 'のーと', emoji: '📓' },
+                    { word: 'きょうしつ', emoji: '🏫' }
+                ]
+            },
             animals: {
                 name: 'どうぶつ',
                 icon: 'fa-paw',
@@ -355,11 +349,15 @@
             }
         };
 
-        const STICKERS = [
-            { id: 1, emoji: '💮', reqStars: 0 },
-            { id: 2, emoji: '🥇', reqStars: 3 },
-            { id: 3, emoji: '🌈', reqStars: 6 },
-            { id: 4, emoji: '🚀', reqStars: 9 }
+        const ALL_STICKERS = [
+            { id: 1, emoji: '💮', name: 'はなまる' },
+            { id: 2, emoji: '🥇', name: 'きんめだる' },
+            { id: 3, emoji: '🌈', name: 'にじ' },
+            { id: 4, emoji: '🚀', name: 'ひこうき' },
+            { id: 5, emoji: '👑', name: 'おうかん' },
+            { id: 6, emoji: '🌟', name: 'ほし' },
+            { id: 7, emoji: '🦄', name: 'ユニコーン' },
+            { id: 8, emoji: '🎈', name: 'ふうせん' }
         ];
 
         class SoundSystem {
@@ -425,9 +423,12 @@
         class HiraganaApp {
             constructor() {
                 this.sound = new SoundSystem();
-                this.selectedCategory = 'animals';
+                this.selectedCategory = 'school';
                 this.currentMode = null;
                 this.stars = parseInt(localStorage.getItem('hiragana_stars') || '0');
+                
+                // Unlocked sticker IDs
+                this.unlockedStickers = JSON.parse(localStorage.getItem('hiragana_unlocked_stickers') || '[1]');
                 
                 // Load Custom Image Items
                 this.customItems = JSON.parse(localStorage.getItem('hiragana_custom_items') || '[]');
@@ -507,7 +508,6 @@
                 document.getElementById('modal-result').classList.add('hidden');
             }
 
-            // Helper to render media (Image or Emoji)
             renderMediaHTML(item, extraClass = "w-12 h-12 object-contain") {
                 if (item.image) {
                     return `<img src="${item.image}" alt="${item.word}" class="${extraClass} rounded-lg inline-block">`;
@@ -804,25 +804,58 @@
                 this.updateStarDisplay();
             }
 
-            /* --- Sticker Book --- */
+            /* --- Sticker Book & Draw (★10 Mechanism) --- */
             openStickerBook() {
+                document.getElementById('modal-star-count').innerText = this.stars;
+                const drawBtn = document.getElementById('get-sticker-btn');
+                
+                // Enable draw button if stars >= 10 and still have locked stickers
+                const locked = ALL_STICKERS.filter(s => !this.unlockedStickers.includes(s.id));
+                if (this.stars >= 10 && locked.length > 0) {
+                    drawBtn.disabled = false;
+                } else {
+                    drawBtn.disabled = true;
+                }
+
+                this.renderStickerGrid();
+                document.getElementById('modal-stickers').classList.remove('hidden');
+            }
+
+            drawSticker() {
+                if (this.stars < 10) return;
+
+                const locked = ALL_STICKERS.filter(s => !this.unlockedStickers.includes(s.id));
+                if (locked.length === 0) return;
+
+                // Deduct 10 stars
+                this.stars -= 10;
+                this.updateStarDisplay();
+
+                // Pick random locked sticker
+                const newSticker = locked[Math.floor(Math.random() * locked.length)];
+                this.unlockedStickers.push(newSticker.id);
+                localStorage.setItem('hiragana_unlocked_stickers', JSON.stringify(this.unlockedStickers));
+
+                this.sound.playCorrect();
+                this.openStickerBook();
+            }
+
+            renderStickerGrid() {
                 const grid = document.getElementById('sticker-grid');
                 grid.innerHTML = '';
 
-                STICKERS.forEach(s => {
-                    const unlocked = this.stars >= s.reqStars;
+                ALL_STICKERS.forEach(s => {
+                    const unlocked = this.unlockedStickers.includes(s.id);
                     const div = document.createElement('div');
                     div.className = `p-3 rounded-2xl flex flex-col items-center justify-center border-2 ${
-                        unlocked ? 'bg-amber-50 border-amber-300 text-3xl' : 'bg-slate-100 border-slate-200 text-slate-300 text-2xl'
+                        unlocked ? 'bg-amber-50 border-amber-300 text-3xl animate-correct' : 'bg-slate-100 border-slate-200 text-slate-300 text-2xl'
                     }`;
                     div.innerHTML = `
                         <span>${unlocked ? s.emoji : '🔒'}</span>
-                        <span class="text-[10px] font-bold text-slate-400 mt-1">${s.reqStars} ★</span>
+                        <span class="text-[10px] font-bold ${unlocked ? 'text-amber-800' : 'text-slate-400'} mt-1">${unlocked ? s.name : '????'}</span>
                     `;
                     grid.appendChild(div);
                 });
-
-                document.getElementById('modal-stickers').classList.remove('hidden');
             }
 
             closeStickerBook() {
@@ -870,7 +903,6 @@
                 this.customItems.push(newItem);
                 localStorage.setItem('hiragana_custom_items', JSON.stringify(this.customItems));
 
-                // Form Reset
                 document.getElementById('custom-item-form').reset();
                 this.renderCustomItemsList();
             }
@@ -899,7 +931,7 @@
                     return;
                 }
 
-                const catNames = { animals: 'どうぶつ', food: 'たべもの', vehicles: 'のりもの', daily: 'せいかつ' };
+                const catNames = { school: 'がっこう', animals: 'どうぶつ', food: 'たべもの', vehicles: 'のりもの', daily: 'せいかつ' };
 
                 this.customItems.forEach(item => {
                     const div = document.createElement('div');
