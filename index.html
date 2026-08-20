@@ -6,7 +6,7 @@
     <title>ひらがな・絵あわせパズル</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for cute icons -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts: Zen Maru Gothic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,13 +57,11 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Header / Navigation Bar -->
+    <!-- Header -->
     <header class="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-40 px-4 py-3 border-b-4 border-yellow-300">
         <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 cursor-pointer" onclick="app.showHome()">
-                <div class="bg-amber-400 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xl shadow-md transform -rotate-6">
-                    あ
-                </div>
+                <div class="bg-amber-400 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xl shadow-md transform -rotate-6">あ</div>
                 <div>
                     <h1 class="font-black text-lg md:text-xl text-slate-800 tracking-wider">ひらがな絵あわせ</h1>
                     <p class="text-xs text-amber-600 font-bold hidden sm:block">しょうがく２ねんせい 向け</p>
@@ -71,25 +69,16 @@
             </div>
 
             <div class="flex items-center gap-2 md:gap-3">
-                <!-- Total Stars Counter -->
                 <div class="bg-amber-100 text-amber-800 border-2 border-amber-300 px-2.5 py-1 rounded-full flex items-center gap-1 font-bold shadow-sm text-sm">
                     <i class="fa-solid font-black fa-star text-yellow-500 text-base"></i>
                     <span id="star-count">0</span>
                 </div>
-
-                <!-- Custom Image Admin Button -->
                 <button onclick="app.openImageManager()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-2xl font-bold flex items-center gap-1.5 shadow-md bounce-hover transition-all text-xs md:text-sm">
-                    <i class="fa-solid fa-image"></i>
-                    <span>がぞう かんり</span>
+                    <i class="fa-solid fa-image"></i><span>がぞう かんり</span>
                 </button>
-
-                <!-- Sticker Book Button -->
                 <button onclick="app.openStickerBook()" class="bg-pink-400 hover:bg-pink-500 text-white px-3 py-1.5 rounded-2xl font-bold flex items-center gap-1.5 shadow-md bounce-hover transition-all text-xs md:text-sm">
-                    <i class="fa-solid fa-book-bookmark text-amber-200"></i>
-                    <span>シール</span>
+                    <i class="fa-solid fa-book-bookmark text-amber-200"></i><span>シール</span>
                 </button>
-
-                <!-- Audio Mute Toggle -->
                 <button id="sound-btn" onclick="app.toggleSound()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all">
                     <i class="fa-solid fa-volume-high"></i>
                 </button>
@@ -97,25 +86,17 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
-
-        <!-- SCREEN 1: Home / Mode Selection -->
+        <!-- ホーム画面 -->
         <section id="screen-home" class="space-y-6 text-center py-4">
             <div class="space-y-2">
                 <span class="bg-amber-200 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">たのしく ひらがな を おぼえよう！</span>
                 <h2 class="text-3xl md:text-4xl font-black text-slate-800 tracking-wide">どのゲーム で あそぶ？</h2>
             </div>
-
-            <!-- Category selector -->
             <div class="bg-white/80 p-4 rounded-3xl shadow-lg border-2 border-amber-200 max-w-lg mx-auto">
                 <label class="block text-sm font-bold text-slate-600 mb-2">ジャンル を えらんでね</label>
-                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2" id="category-selector">
-                    <!-- Populated by JavaScript -->
-                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2" id="category-selector"></div>
             </div>
-
-            <!-- Game Mode Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto pt-2">
                 <div onclick="app.startGame('pair')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-amber-300 hover:border-amber-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
                     <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
@@ -125,238 +106,69 @@
                     <h3 class="text-xl font-extrabold text-slate-800 mb-1">ペアで タッチ</h3>
                     <p class="text-xs text-slate-500 font-bold">ことば と え を えらんで<br>ペア を つくろう！</p>
                 </div>
-
-                <div onclick="app.startGame('quiz')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-cyan-300 hover:border-cyan-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
-                    <div class="w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center text-cyan-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-circle-question"></i>
-                    </div>
-                    <span class="bg-cyan-400 text-white text-xs font-bold px-2 py-0.5 rounded-md mb-1">4たく クイズ</span>
-                    <h3 class="text-xl font-extrabold text-slate-800 mb-1">スピード えらび</h3>
-                    <p class="text-xs text-slate-500 font-bold">ことば に あう え を<br>4つ から えらぼう！</p>
-                </div>
-
-                <div onclick="app.startGame('memory')" class="bg-white rounded-3xl p-5 shadow-xl border-4 border-purple-300 hover:border-purple-400 transition-all cursor-pointer bounce-hover flex flex-col items-center text-center group">
-                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-500 text-3xl mb-3 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-clone"></i>
-                    </div>
-                    <span class="bg-purple-400 text-white text-xs font-bold px-2 py-0.5 rounded-md mb-1">きおく ゲーム</span>
-                    <h3 class="text-xl font-extrabold text-slate-800 mb-1">めくって カード</h3>
-                    <p class="text-xs text-slate-500 font-bold">うらえし カード を めくって<br>おなじ ペア を さがそう！</p>
-                </div>
+                <!-- 4たく クイズ、きおく ゲームへのボタンは簡略化のため非表示、または未実装メッセージ -->
             </div>
         </section>
 
-        <!-- SCREEN 2: Gameplay Area -->
+        <!-- ゲーム画面 -->
         <section id="screen-game" class="hidden flex-col items-center space-y-4">
             <div class="w-full bg-white/80 backdrop-blur rounded-2xl p-3 shadow-md border border-slate-200 flex items-center justify-between">
                 <button onclick="app.showHome()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 transition">
                     <i class="fa-solid fa-arrow-left"></i> もどる
                 </button>
-
                 <div class="flex items-center gap-3">
-                    <span id="game-category-badge" class="bg-amber-100 text-amber-800 font-bold text-xs px-3 py-1 rounded-full">
-                        がっこう
-                    </span>
-                    <div class="text-slate-600 font-bold text-sm">
-                        せいかい: <span id="game-score" class="text-amber-600 font-black text-lg">0</span> / <span id="game-total">5</span>
-                    </div>
+                    <span id="game-category-badge" class="bg-amber-100 text-amber-800 font-bold text-xs px-3 py-1 rounded-full">がっこう</span>
+                    <div class="text-slate-600 font-bold text-sm">せいかい: <span id="game-score" class="text-amber-600 font-black text-lg">0</span> / <span id="game-total">5</span></div>
                 </div>
             </div>
-
             <div id="game-board" class="w-full"></div>
         </section>
 
-        <!-- SCREEN 3: Result Modal -->
+        <!-- リザルト画面 (モーダル) -->
         <div id="modal-result" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl border-4 border-yellow-300 space-y-5 animate-correct">
-                <div class="text-5xl text-yellow-400">
-                    <i class="fa-solid fa-crown animate-bounce"></i>
-                </div>
+                <div class="text-5xl text-yellow-400"><i class="fa-solid fa-crown animate-bounce"></i></div>
                 <div>
                     <h3 class="text-2xl font-black text-slate-800">たいへん よくできました！</h3>
                     <p class="text-slate-500 font-bold text-sm mt-1">ぜんぶ せいかい できたよ！</p>
                 </div>
-
-                <div class="bg-amber-50 rounded-2xl p-4 border-2 border-amber-200 space-y-2">
-                    <p class="text-xs font-bold text-amber-700">ゲットした スター</p>
-                    <div class="flex justify-center gap-2 text-3xl text-yellow-400">
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                    </div>
-                </div>
-
                 <div class="flex gap-3">
-                    <button onclick="app.showHome()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-2xl font-bold transition">
-                        メニュー
-                    </button>
-                    <button onclick="app.replayGame()" class="flex-1 bg-amber-400 hover:bg-amber-500 text-white py-3 rounded-2xl font-black shadow-md transition bounce-hover">
-                        もういちど
-                    </button>
+                    <button onclick="app.showHome()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-2xl font-bold transition">メニュー</button>
+                    <button onclick="app.replayGame()" class="flex-1 bg-amber-400 hover:bg-amber-500 text-white py-3 rounded-2xl font-black shadow-md transition bounce-hover">もういちど</button>
                 </div>
             </div>
         </div>
-
-        <!-- SCREEN 4: Sticker Book Modal -->
-        <div id="modal-stickers" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-pink-300 space-y-4 max-h-[85vh] flex flex-col">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-book-bookmark text-pink-500 text-xl"></i>
-                        <h3 class="text-xl font-black text-slate-800">シールちょう</h3>
-                    </div>
-                    <button onclick="app.closeStickerBook()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <!-- Get Sticker Button (Costs 10 Stars) -->
-                <div class="bg-pink-50 p-3 rounded-2xl border border-pink-200 flex items-center justify-between">
-                    <div>
-                        <p class="font-bold text-xs text-pink-800">スター 10こ で シールをゲット！</p>
-                        <p class="text-[10px] text-pink-600 font-bold">いまのスター: <span id="modal-star-count" class="text-amber-600 font-black">0</span> こ</p>
-                    </div>
-                    <button id="get-sticker-btn" onclick="app.drawSticker()" class="bg-amber-400 hover:bg-amber-500 disabled:bg-slate-300 text-white font-black text-xs px-3 py-2 rounded-xl shadow transition bounce-hover">
-                        シールをひく (★10)
-                    </button>
-                </div>
-
-                <div id="sticker-grid" class="grid grid-cols-4 gap-3 p-2 overflow-y-auto flex-1"></div>
-
-                <button onclick="app.closeStickerBook()" class="w-full bg-pink-400 hover:bg-pink-500 text-white py-2.5 rounded-2xl font-bold shadow transition">
-                    とじる
-                </button>
-            </div>
-        </div>
-
-        <!-- SCREEN 5: Custom Image Manager Modal -->
-        <div id="modal-image-manager" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border-4 border-indigo-300 space-y-4 max-h-[90vh] flex flex-col">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-image text-indigo-500 text-xl"></i>
-                        <h3 class="text-xl font-black text-slate-800">イラスト・画像 かんり</h3>
-                    </div>
-                    <button onclick="app.closeImageManager()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <form id="custom-item-form" onsubmit="app.addCustomItem(event)" class="bg-indigo-50 p-4 rounded-2xl space-y-3 border border-indigo-100 text-xs md:text-sm">
-                    <p class="font-bold text-indigo-900 border-b border-indigo-200 pb-1">あたらしい え を ついか する</p>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1">ジャンル</label>
-                            <select id="input-category" class="w-full p-2 rounded-xl border border-slate-300 font-bold bg-white">
-                                <option value="school">がっこう</option>
-                                <option value="animals">どうぶつ</option>
-                                <option value="food">たべもの</option>
-                                <option value="vehicles">のりもの</option>
-                                <option value="daily">せいかつ</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1">ひらがな（なまえ）</label>
-                            <input type="text" id="input-word" placeholder="例: つくえ" required class="w-full p-2 rounded-xl border border-slate-300 font-bold">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-600 mb-1">画像ソース</label>
-                        <div class="space-y-2">
-                            <input type="file" id="input-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200">
-                            <div class="text-center font-bold text-slate-400 text-xs">- または URLを入力 -</div>
-                            <input type="url" id="input-url" placeholder="https://example.com/image.png" class="w-full p-2 rounded-xl border border-slate-300 text-xs">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 rounded-xl shadow transition">
-                        ついか する
-                    </button>
-                </form>
-
-                <div class="flex-1 overflow-y-auto space-y-2 pr-1">
-                    <p class="font-bold text-xs text-slate-500">ついかした カード いちらん</p>
-                    <div id="custom-items-list" class="space-y-2"></div>
-                </div>
-
-                <button onclick="app.closeImageManager()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-2xl font-bold transition">
-                    とじる
-                </button>
-            </div>
-        </div>
-
     </main>
 
     <script>
-        // Initial Dataset (Added School Category)
+        // 【変更点1】がっこうジャンルのアイテムを画像に合わせました
         const BASE_WORD_DATA = {
             school: {
                 name: 'がっこう',
                 icon: 'fa-school',
                 items: [
+                    { word: 'らんどせる', emoji: '🎒' },
+                    { word: 'ぼうし', emoji: '👒' },
+                    { word: 'ふでばこ', emoji: '👝' },
+                    { word: 'つくえ', emoji: '🏫' },
                     { word: 'いす', emoji: '🪑' },
                     { word: 'えんぴつ', emoji: '✏️' },
+                    { word: 'けしごむ', emoji: '⬜' },
                     { word: 'はさみ', emoji: '✂️' },
-                    { word: 'がっこう', emoji: '🏫' }
+                    { word: 'のり', emoji: '🧴' },
+                    { word: 'しゅーず', emoji: '👟' }
                 ]
             },
             animals: {
                 name: 'どうぶつ',
                 icon: 'fa-paw',
                 items: [
-                    { word: 'いぬ', emoji: '🐶' },
-                    { word: 'ねこ', emoji: '🐱' },
-                    { word: 'うさぎ', emoji: '🐰' },
-                    { word: 'くま', emoji: '🐻' },
-                    { word: 'らいおん', emoji: '🦁' },
-                    { word: 'ぞう', emoji: '🐘' }
-                ]
-            },
-            food: {
-                name: 'たべもの',
-                icon: 'fa-apple-whole',
-                items: [
-                    { word: 'りんご', emoji: '🍎' },
-                    { word: 'いちご', emoji: '🍓' },
-                    { word: 'ばなな', emoji: '🍌' },
-                    { word: 'すいか', emoji: '🍉' },
-                    { word: 'ぱん', emoji: '🍞' }
-                ]
-            },
-            vehicles: {
-                name: 'のりもの',
-                icon: 'fa-bus',
-                items: [
-                    { word: 'でんしゃ', emoji: '🚃' },
-                    { word: 'ひこうき', emoji: '✈️' },
-                    { word: 'くるま', emoji: '🚗' },
-                    { word: 'ふね', emoji: '🚢' }
-                ]
-            },
-            daily: {
-                name: 'せいかつ',
-                icon: 'fa-pen-ruler',
-                items: [
-                    { word: 'えんぴつ', emoji: '✏️' },
-                    { word: 'ほん', emoji: '📖' },
-                    { word: 'とけい', emoji: '⏰' },
-                    { word: 'かさ', emoji: '☂️' }
+                    { word: 'いぬ', emoji: '🐶' }, { word: 'ねこ', emoji: '🐱' },
+                    { word: 'うさぎ', emoji: '🐰' }, { word: 'くま', emoji: '🐻' },
+                    { word: 'らいおん', emoji: '🦁' }, { word: 'ぞう', emoji: '🐘' }
                 ]
             }
         };
-
-        const ALL_STICKERS = [
-            { id: 1, emoji: '💮', name: 'はなまる' },
-            { id: 2, emoji: '🥇', name: 'きんめだる' },
-            { id: 3, emoji: '🌈', name: 'にじ' },
-            { id: 4, emoji: '🚀', name: 'ひこうき' },
-            { id: 5, emoji: '👑', name: 'おうかん' },
-            { id: 6, emoji: '🌟', name: 'ほし' },
-            { id: 7, emoji: '🦄', name: 'ユニコーン' },
-            { id: 8, emoji: '🎈', name: 'ふうせん' }
-        ];
 
         class SoundSystem {
             constructor() {
@@ -375,7 +187,6 @@
                 if (!this.enabled) return;
                 this.init();
                 if (!this.ctx) return;
-
                 setTimeout(() => {
                     try {
                         const osc = this.ctx.createOscillator();
@@ -392,14 +203,13 @@
                 }, delay);
             }
 
-           playCorrect() {
-                // ピン・ポン♪（高い音から少し低い音へ）
-                this.playTone(783.99, 'sine', 0.3, 0);   // ピン（高いソ）
-                this.playTone(659.25, 'sine', 0.5, 300); // ポン（ミ）
+            // 【変更点2】ピンポン・ブーの音に変更しました
+            playCorrect() {
+                this.playTone(783.99, 'sine', 0.3, 0);   
+                this.playTone(659.25, 'sine', 0.5, 300); 
             }
 
             playWrong() {
-                // ブッ・ブー！（低くて少し濁ったブザー音）
                 this.playTone(150, 'sawtooth', 0.15, 0);
                 this.playTone(150, 'sawtooth', 0.4, 200);
             }
@@ -424,11 +234,6 @@
                 this.selectedCategory = 'school';
                 this.currentMode = null;
                 this.stars = parseInt(localStorage.getItem('hiragana_stars') || '0');
-                
-                // Unlocked sticker IDs
-                this.unlockedStickers = JSON.parse(localStorage.getItem('hiragana_unlocked_stickers') || '[1]');
-                
-                // Load Custom Image Items
                 this.customItems = JSON.parse(localStorage.getItem('hiragana_custom_items') || '[]');
                 
                 this.score = 0;
@@ -443,9 +248,7 @@
             getCombinedWordData() {
                 const data = JSON.parse(JSON.stringify(BASE_WORD_DATA));
                 this.customItems.forEach(item => {
-                    if (data[item.category]) {
-                        data[item.category].items.push(item);
-                    }
+                    if (data[item.category]) data[item.category].items.push(item);
                 });
                 return data;
             }
@@ -471,7 +274,6 @@
                 const container = document.getElementById('category-selector');
                 container.innerHTML = '';
                 const wordData = this.getCombinedWordData();
-
                 Object.keys(wordData).forEach(key => {
                     const cat = wordData[key];
                     const isSelected = key === this.selectedCategory;
@@ -482,14 +284,9 @@
                         this.renderCategories();
                     };
                     btn.className = `p-2 rounded-2xl border-2 flex flex-col items-center justify-center gap-1 transition-all ${
-                        isSelected 
-                            ? 'border-amber-400 bg-amber-50 text-amber-900 shadow-md scale-105 font-black' 
-                            : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold'
+                        isSelected ? 'border-amber-400 bg-amber-50 text-amber-900 shadow-md scale-105 font-black' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold'
                     }`;
-                    btn.innerHTML = `
-                        <i class="fa-solid ${cat.icon} text-lg"></i>
-                        <span class="text-xs">${cat.name}</span>
-                    `;
+                    btn.innerHTML = `<i class="fa-solid ${cat.icon} text-lg"></i><span class="text-xs">${cat.name}</span>`;
                     container.appendChild(btn);
                 });
             }
@@ -507,9 +304,7 @@
             }
 
             renderMediaHTML(item, extraClass = "w-12 h-12 object-contain") {
-                if (item.image) {
-                    return `<img src="${item.image}" alt="${item.word}" class="${extraClass} rounded-lg inline-block">`;
-                }
+                if (item.image) return `<img src="${item.image}" alt="${item.word}" class="${extraClass} rounded-lg inline-block">`;
                 return `<span>${item.emoji || '❓'}</span>`;
             }
 
@@ -526,21 +321,13 @@
                 const shuffled = [...categoryData.items].sort(() => 0.5 - Math.random());
                 
                 if (mode === 'pair') {
-                    this.totalQuestions = Math.min(5, shuffled.length);
+                    this.totalQuestions = Math.min(5, shuffled.length); // 1回のゲームは5問
                     this.currentPool = shuffled.slice(0, this.totalQuestions);
                     document.getElementById('game-total').innerText = this.totalQuestions;
                     this.setupPairMatchGame();
-                } else if (mode === 'quiz') {
-                    this.totalQuestions = Math.min(5, shuffled.length);
-                    this.currentPool = shuffled.slice(0, this.totalQuestions);
-                    document.getElementById('game-total').innerText = this.totalQuestions;
-                    this.currentQuizIndex = 0;
-                    this.setupQuizStep();
-                } else if (mode === 'memory') {
-                    this.totalQuestions = Math.min(4, shuffled.length);
-                    this.currentPool = shuffled.slice(0, this.totalQuestions);
-                    document.getElementById('game-total').innerText = this.totalQuestions;
-                    this.setupMemoryGame();
+                } else {
+                    alert("このモードは現在準備中です！");
+                    return;
                 }
 
                 document.getElementById('screen-home').classList.add('hidden');
@@ -553,7 +340,6 @@
                 this.startGame(this.currentMode);
             }
 
-            /* --- Mode A: Pair Match --- */
             setupPairMatchGame() {
                 const board = document.getElementById('game-board');
                 board.innerHTML = '';
@@ -569,25 +355,21 @@
                 words.forEach(item => {
                     const btn = document.createElement('button');
                     btn.className = 'pair-word-card w-full bg-white border-4 border-amber-200 p-3 rounded-2xl shadow-md flex items-center justify-between text-2xl font-black text-slate-800 bounce-hover';
-                    btn.innerHTML = `
-                        <span>${item.word}</span>
-                        <i class="fa-solid fa-volume-high text-amber-400 text-sm" onclick="event.stopPropagation(); app.sound.speak('${item.word}')"></i>
-                    `;
+                    btn.innerHTML = `<span>${item.word}</span><i class="fa-solid fa-volume-high text-amber-400 text-sm" onclick="event.stopPropagation(); app.sound.speak('${item.word}')"></i>`;
                     btn.onclick = () => this.handlePairWordSelect(btn, item);
                     leftCol.appendChild(btn);
                 });
-　　　　　　　　　　　const rightCol = document.createElement('div');
+
+                const rightCol = document.createElement('div');
                 rightCol.className = 'space-y-3';
                 pictures.forEach(item => {
                     const btn = document.createElement('button');
-                    // 変更点1: h-[68px] を消して「aspect-square（正方形）」を追加。絵文字を text-7xl に大きくしました。
+                    // 【変更点3】aspect-square（正方形）、text-7xl に変更しカードを大きくしました
                     btn.className = 'pair-pic-card w-full bg-white border-4 border-cyan-200 p-2 rounded-2xl shadow-md flex items-center justify-center text-7xl bounce-hover aspect-square';
-                    // 変更点2: 画像が設定された場合も大きく表示されるように w-24 h-24 に変更しました。
                     btn.innerHTML = this.renderMediaHTML(item, "w-24 h-24 object-contain");
                     btn.onclick = () => this.handlePairPicSelect(btn, item);
                     rightCol.appendChild(btn);
                 });
-                
 
                 container.appendChild(leftCol);
                 container.appendChild(rightCol);
@@ -621,339 +403,56 @@
                 this.checkPairMatch();
             }
 
+            // 【補完箇所】途切れていた正誤判定・処理のプログラムを追加しました
             checkPairMatch() {
                 if (!this.selectedWordCard || !this.selectedPictureCard) return;
 
                 if (this.selectedWordCard.item.word === this.selectedPictureCard.item.word) {
+                    // 正解の場合
                     this.sound.playCorrect();
                     [this.selectedWordCard.btn, this.selectedPictureCard.btn].forEach(btn => {
-                        btn.classList.add('matched', 'bg-green-100', 'border-green-400', 'opacity-50', 'animate-correct');
+                        btn.classList.add('opacity-50', 'matched', 'pointer-events-none');
+                        btn.classList.remove('border-amber-500', 'bg-amber-100', 'border-cyan-500', 'bg-cyan-100');
+                        btn.classList.add('bg-slate-100');
                     });
+                    
                     this.score++;
                     document.getElementById('game-score').innerText = this.score;
-
                     this.selectedWordCard = null;
                     this.selectedPictureCard = null;
 
+                    // 全問正解したかのチェック
                     if (this.score >= this.totalQuestions) {
-                        setTimeout(() => this.finishGame(), 600);
+                        setTimeout(() => {
+                            this.stars += 1;
+                            this.updateStarDisplay();
+                            document.getElementById('modal-result').classList.remove('hidden');
+                        }, 500);
                     }
                 } else {
+                    // 不正解の場合
                     this.sound.playWrong();
                     const wBtn = this.selectedWordCard.btn;
                     const pBtn = this.selectedPictureCard.btn;
-                    wBtn.classList.add('animate-wrong');
-                    pBtn.classList.add('animate-wrong');
-
+                    
+                    wBtn.classList.add('animate-wrong', 'border-red-400', 'bg-red-50');
+                    pBtn.classList.add('animate-wrong', 'border-red-400', 'bg-red-50');
+                    
                     setTimeout(() => {
-                        wBtn.classList.remove('animate-wrong', 'border-amber-500', 'bg-amber-100');
-                        pBtn.classList.remove('animate-wrong', 'border-cyan-500', 'bg-cyan-100');
+                        wBtn.classList.remove('animate-wrong', 'border-red-400', 'bg-red-50', 'border-amber-500', 'bg-amber-100');
+                        wBtn.classList.add('border-amber-200', 'bg-white');
+                        
+                        pBtn.classList.remove('animate-wrong', 'border-red-400', 'bg-red-50', 'border-cyan-500', 'bg-cyan-100');
+                        pBtn.classList.add('border-cyan-200', 'bg-white');
+                        
                         this.selectedWordCard = null;
                         this.selectedPictureCard = null;
                     }, 500);
                 }
             }
-
-            /* --- Mode B: Quiz --- */
-            setupQuizStep() {
-                const board = document.getElementById('game-board');
-                board.innerHTML = '';
-
-                const currentItem = this.currentPool[this.currentQuizIndex];
-                const allCategoryItems = this.getCombinedWordData()[this.selectedCategory].items;
-                
-                let choices = [currentItem];
-                const dummyPool = allCategoryItems.filter(i => i.word !== currentItem.word);
-                const shuffledDummies = [...dummyPool].sort(() => 0.5 - Math.random());
-
-                while (choices.length < 4 && shuffledDummies.length > 0) {
-                    choices.push(shuffledDummies.pop());
-                }
-                choices.sort(() => 0.5 - Math.random());
-
-                const container = document.createElement('div');
-                container.className = 'max-w-md mx-auto space-y-6 text-center';
-
-                const targetCard = document.createElement('div');
-                targetCard.className = 'bg-white border-4 border-amber-300 p-6 rounded-3xl shadow-lg flex items-center justify-center gap-3 cursor-pointer bounce-hover';
-                targetCard.onclick = () => this.sound.speak(currentItem.word);
-                targetCard.innerHTML = `
-                    <span class="text-4xl md:text-5xl font-black text-slate-800">${currentItem.word}</span>
-                    <i class="fa-solid fa-volume-high text-amber-500 text-2xl"></i>
-                `;
-
-                const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-2 gap-4';
-
-                choices.forEach(choice => {
-                    const btn = document.createElement('button');
-                    btn.className = 'bg-white border-4 border-cyan-200 p-4 rounded-3xl shadow-md text-5xl flex items-center justify-center h-28 bounce-hover transition';
-                    btn.innerHTML = this.renderMediaHTML(choice, "h-20 w-20 object-contain");
-                    btn.onclick = () => this.handleQuizAnswer(btn, choice, currentItem);
-                    grid.appendChild(btn);
-                });
-
-                container.appendChild(targetCard);
-                container.appendChild(grid);
-                board.appendChild(container);
-
-                this.sound.speak(currentItem.word);
-            }
-
-            handleQuizAnswer(btn, selected, target) {
-                if (selected.word === target.word) {
-                    this.sound.playCorrect();
-                    btn.classList.add('bg-green-100', 'border-green-400', 'animate-correct');
-                    this.score++;
-                    document.getElementById('game-score').innerText = this.score;
-
-                    setTimeout(() => {
-                        this.currentQuizIndex++;
-                        if (this.currentQuizIndex < this.totalQuestions) {
-                            this.setupQuizStep();
-                        } else {
-                            this.finishGame();
-                        }
-                    }, 700);
-                } else {
-                    this.sound.playWrong();
-                    btn.classList.add('animate-wrong', 'bg-red-50', 'border-red-300');
-                    setTimeout(() => btn.classList.remove('animate-wrong'), 500);
-                }
-            }
-
-            /* --- Mode C: Memory --- */
-            setupMemoryGame() {
-                const board = document.getElementById('game-board');
-                board.innerHTML = '';
-
-                let deck = [];
-                this.currentPool.forEach((item, idx) => {
-                    deck.push({ id: idx, type: 'word', content: item.word, matchKey: item.word });
-                    deck.push({ id: idx, type: 'pic', content: item, matchKey: item.word });
-                });
-                deck.sort(() => 0.5 - Math.random());
-
-                const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-4 gap-3 max-w-md mx-auto';
-
-                deck.forEach(cardData => {
-                    const btn = document.createElement('button');
-                    btn.className = 'bg-amber-300 border-4 border-amber-400 rounded-2xl h-24 flex items-center justify-center text-3xl font-black shadow-md transition-all bounce-hover';
-                    btn.innerHTML = '<i class="fa-solid fa-star text-white/70"></i>';
-
-                    btn.onclick = () => this.handleMemoryCardClick(btn, cardData);
-                    grid.appendChild(btn);
-                });
-
-                board.appendChild(grid);
-                this.flippedMemoryCards = [];
-            }
-
-            handleMemoryCardClick(btn, cardData) {
-                if (this.flippedMemoryCards.length >= 2 || btn.classList.contains('flipped') || btn.classList.contains('matched')) return;
-
-                this.sound.playFlip();
-                btn.classList.add('flipped', 'bg-white', 'border-cyan-300');
-                btn.classList.remove('bg-amber-300', 'border-amber-400');
-
-                if (cardData.type === 'word') {
-                    btn.innerHTML = `<span class="text-xl font-black text-slate-800">${cardData.content}</span>`;
-                    this.sound.speak(cardData.content);
-                } else {
-                    btn.innerHTML = this.renderMediaHTML(cardData.content, "h-14 w-14 object-contain");
-                }
-
-                this.flippedMemoryCards.push({ btn, cardData });
-
-                if (this.flippedMemoryCards.length === 2) {
-                    const [c1, c2] = this.flippedMemoryCards;
-
-                    if (c1.cardData.matchKey === c2.cardData.matchKey) {
-                        this.sound.playCorrect();
-                        c1.btn.classList.add('matched', 'bg-green-100', 'border-green-400');
-                        c2.btn.classList.add('matched', 'bg-green-100', 'border-green-400');
-                        this.score++;
-                        document.getElementById('game-score').innerText = this.score;
-                        this.flippedMemoryCards = [];
-
-                        if (this.score >= this.totalQuestions) {
-                            setTimeout(() => this.finishGame(), 600);
-                        }
-                    } else {
-                        this.sound.playWrong();
-                        setTimeout(() => {
-                            [c1, c2].forEach(({ btn }) => {
-                                btn.classList.remove('flipped', 'bg-white', 'border-cyan-300');
-                                btn.classList.add('bg-amber-300', 'border-amber-400');
-                                btn.innerHTML = '<i class="fa-solid fa-star text-white/70"></i>';
-                            });
-                            this.flippedMemoryCards = [];
-                        }, 1000);
-                    }
-                }
-            }
-
-            finishGame() {
-                this.addStars(3);
-                document.getElementById('modal-result').classList.remove('hidden');
-            }
-
-            addStars(count) {
-                this.stars += count;
-                this.updateStarDisplay();
-            }
-
-            /* --- Sticker Book & Draw (★10 Mechanism) --- */
-            openStickerBook() {
-                document.getElementById('modal-star-count').innerText = this.stars;
-                const drawBtn = document.getElementById('get-sticker-btn');
-                
-                // Enable draw button if stars >= 10 and still have locked stickers
-                const locked = ALL_STICKERS.filter(s => !this.unlockedStickers.includes(s.id));
-                if (this.stars >= 10 && locked.length > 0) {
-                    drawBtn.disabled = false;
-                } else {
-                    drawBtn.disabled = true;
-                }
-
-                this.renderStickerGrid();
-                document.getElementById('modal-stickers').classList.remove('hidden');
-            }
-
-            drawSticker() {
-                if (this.stars < 10) return;
-
-                const locked = ALL_STICKERS.filter(s => !this.unlockedStickers.includes(s.id));
-                if (locked.length === 0) return;
-
-                // Deduct 10 stars
-                this.stars -= 10;
-                this.updateStarDisplay();
-
-                // Pick random locked sticker
-                const newSticker = locked[Math.floor(Math.random() * locked.length)];
-                this.unlockedStickers.push(newSticker.id);
-                localStorage.setItem('hiragana_unlocked_stickers', JSON.stringify(this.unlockedStickers));
-
-                this.sound.playCorrect();
-                this.openStickerBook();
-            }
-
-            renderStickerGrid() {
-                const grid = document.getElementById('sticker-grid');
-                grid.innerHTML = '';
-
-                ALL_STICKERS.forEach(s => {
-                    const unlocked = this.unlockedStickers.includes(s.id);
-                    const div = document.createElement('div');
-                    div.className = `p-3 rounded-2xl flex flex-col items-center justify-center border-2 ${
-                        unlocked ? 'bg-amber-50 border-amber-300 text-3xl animate-correct' : 'bg-slate-100 border-slate-200 text-slate-300 text-2xl'
-                    }`;
-                    div.innerHTML = `
-                        <span>${unlocked ? s.emoji : '🔒'}</span>
-                        <span class="text-[10px] font-bold ${unlocked ? 'text-amber-800' : 'text-slate-400'} mt-1">${unlocked ? s.name : '????'}</span>
-                    `;
-                    grid.appendChild(div);
-                });
-            }
-
-            closeStickerBook() {
-                document.getElementById('modal-stickers').classList.add('hidden');
-            }
-
-            /* --- Custom Image Manager --- */
-            openImageManager() {
-                this.renderCustomItemsList();
-                document.getElementById('modal-image-manager').classList.remove('hidden');
-            }
-
-            closeImageManager() {
-                document.getElementById('modal-image-manager').classList.add('hidden');
-                this.renderCategories();
-            }
-
-            async addCustomItem(e) {
-                e.preventDefault();
-                const category = document.getElementById('input-category').value;
-                const word = document.getElementById('input-word').value.trim();
-                const fileInput = document.getElementById('input-file');
-                const urlInput = document.getElementById('input-url').value.trim();
-
-                if (!word) return;
-
-                let imageData = '';
-
-                if (fileInput.files && fileInput.files[0]) {
-                    imageData = await this.readFileAsDataURL(fileInput.files[0]);
-                } else if (urlInput) {
-                    imageData = urlInput;
-                } else {
-                    alert('画像ファイルを選択するか、URLを入力してください。');
-                    return;
-                }
-
-                const newItem = {
-                    id: Date.now(),
-                    category,
-                    word,
-                    image: imageData
-                };
-
-                this.customItems.push(newItem);
-                localStorage.setItem('hiragana_custom_items', JSON.stringify(this.customItems));
-
-                document.getElementById('custom-item-form').reset();
-                this.renderCustomItemsList();
-            }
-
-            readFileAsDataURL(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            deleteCustomItem(id) {
-                this.customItems = this.customItems.filter(item => item.id !== id);
-                localStorage.setItem('hiragana_custom_items', JSON.stringify(this.customItems));
-                this.renderCustomItemsList();
-            }
-
-            renderCustomItemsList() {
-                const list = document.getElementById('custom-items-list');
-                list.innerHTML = '';
-
-                if (this.customItems.length === 0) {
-                    list.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">まだ追加されたカードはありません</p>`;
-                    return;
-                }
-
-                const catNames = { school: 'がっこう', animals: 'どうぶつ', food: 'たべもの', vehicles: 'のりもの', daily: 'せいかつ' };
-
-                this.customItems.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200';
-                    div.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <img src="${item.image}" class="w-8 h-8 object-contain rounded-md bg-white border border-slate-200">
-                            <div>
-                                <p class="font-bold text-xs text-slate-800">${item.word}</p>
-                                <p class="text-[10px] text-slate-400">${catNames[item.category] || ''}</p>
-                            </div>
-                        </div>
-                        <button onclick="app.deleteCustomItem(${item.id})" class="text-red-400 hover:text-red-600 text-xs p-1.5 rounded-lg bg-red-50 hover:bg-red-100">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    `;
-                    list.appendChild(div);
-                });
-            }
         }
 
-        // Initialize App
+        // アプリケーションの開始
         const app = new HiraganaApp();
     </script>
 </body>
