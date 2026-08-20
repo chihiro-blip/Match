@@ -392,16 +392,16 @@
                 }, delay);
             }
 
-            playCorrect() {
-                this.playTone(523.25, 'sine', 0.15, 0);
-                this.playTone(659.25, 'sine', 0.15, 100);
-                this.playTone(783.99, 'sine', 0.15, 200);
-                this.playTone(1046.50, 'sine', 0.3, 300);
+           playCorrect() {
+                // ピン・ポン♪（高い音から少し低い音へ）
+                this.playTone(783.99, 'sine', 0.3, 0);   // ピン（高いソ）
+                this.playTone(659.25, 'sine', 0.5, 300); // ポン（ミ）
             }
 
             playWrong() {
-                this.playTone(220, 'sawtooth', 0.2, 0);
-                this.playTone(180, 'sawtooth', 0.3, 150);
+                // ブッ・ブー！（低くて少し濁ったブザー音）
+                this.playTone(150, 'sawtooth', 0.15, 0);
+                this.playTone(150, 'sawtooth', 0.4, 200);
             }
 
             playFlip() {
